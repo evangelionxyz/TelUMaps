@@ -1,3 +1,5 @@
+// Copyright (c) 2024 Evangelion Manuhutu | Nur Ilmi Mufidah
+
 #pragma once
 
 namespace telu {
