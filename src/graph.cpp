@@ -5,28 +5,73 @@
 
 namespace telu {
 
-Edge::Edge(): weight(0), next(nullptr)
+Edge::Edge() : weight(0), next(nullptr) {}
+Edge::Edge(int weight): weight(weight), next(nullptr) {}
+
+void Edge::print()
 {
 }
 
-Node::Node(): next(nullptr), first_edge(nullptr)
+Node::Node(): next(nullptr), first_edge(nullptr) {}
+
+Node::Node(const std::string &name): name(name), next(nullptr), first_edge(nullptr){}
+
+Edge *Node::add_edge(Graph *graph, const std::string &to, int weight)
 {
+    Node *target_node = graph->find_node(to);
+    if (!target_node)
+    {
+        std::cout << "Could not find target node: " << to << '\n';
+        return nullptr;
+    }
+
+    Edge *new_edge = new Edge(weight);
+    new_edge->target_node = target_node->name;
+    
+    if (!first_edge)
+    {
+        first_edge = new_edge;
+        return new_edge;
+    }
+
+    Edge *current = first_edge;
+    while (current && current->next)
+        current = current->next;
+    current->next = new_edge;
+    return new_edge;
 }
 
-Node::Node(const std::string &name)
-    : next(nullptr), first_edge(nullptr), name(name)
+void Node::print()
 {
+    std::cout << "Node: " << name << '\n';
 }
 
-#define CHECK_GRAPH_IS_NOT_EMPTY() if (Graph::is_empty())\
-                                       std::cout << "[WARNING] Graph is empty!!\n"
 
-Graph::Graph(): first(nullptr)
+#pragma region GRAPH
+
+Graph::Graph()
+    : first(nullptr)
 {
 }
 
 Graph::~Graph()
 {
+}
+
+// insert last
+Node* Graph::insert_node(Node *new_node)
+{
+    if (!first)
+    {
+        first = new_node;
+        return new_node;
+    }
+
+    Node *current = first;
+    while (current && current->next)
+        current = current->next;
+    current->next = new_node;
+    return new_node;
 }
 
 // insert last
@@ -48,29 +93,20 @@ Node *Graph::insert_node(const std::string &name)
 
 Node *Graph::find_node(const std::string &name)
 {
-    CHECK_GRAPH_IS_NOT_EMPTY();
-
-    Node *current = first;
-    while (current) {
-        if (current->name == name)
-            return current;
-        current = current->next;
-    }
     return nullptr;
 }
 
-bool Graph::is_empty() const
+bool Graph::is_empty()
 {
     return first == nullptr;
 }
 
 void Graph::print()
 {
-    CHECK_GRAPH_IS_NOT_EMPTY();
-
-    Node *current = first;
-    while (current) {
-        std::cout << "Vertex: " << current->name << '\n';
+     Node *current = first;
+    while (current)
+    {
+        current->print();
         current = current->next;
     }
 }
