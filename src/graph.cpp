@@ -14,7 +14,6 @@ void Edge::print()
 
 Node::Node(): next(nullptr), first_edge(nullptr) {}
 
-
 Node::Node(const std::string &name): name(name), next(nullptr), first_edge(nullptr){}
 
 Edge *Node::add_edge(Graph *graph, const std::string &to, int weight)
