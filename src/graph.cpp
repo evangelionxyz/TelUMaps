@@ -10,6 +10,7 @@ Edge::Edge(int weight): weight(weight), next(nullptr) {}
 
 void Edge::print()
 {
+    printf("-> %s - weights %d\n", target_node.c_str(), weight);
 }
 
 Node::Node(): next(nullptr), first_edge(nullptr) {}
@@ -115,7 +116,9 @@ void Graph::setup_route(const std::string &from, const std::string &to, int weig
     Node *to_node = find_node(to);
     if (!to_node) to_node = insert_node(to);
 
+    // add edge for both nodes
     from_node->add_edge(this, to, weight);
+    to_node->add_edge(this, from, weight);
 }
 
 void Graph::find_shortest_path(const std::string &start, const std::string &end)
@@ -198,12 +201,21 @@ bool Graph::is_empty()
 
 void Graph::print()
 {
-     Node *current = first;
+    Node *current = first;
     while (current)
     {
         current->print();
+        Edge *edge = current->first_edge;
+        while (edge)
+        {
+            printf("   ");
+            edge->print();
+            edge = edge->next;
+        }
         current = current->next;
     }
 }
+
+#pragma endregion // !GRAPH
 
 }

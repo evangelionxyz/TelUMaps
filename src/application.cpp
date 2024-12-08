@@ -5,13 +5,22 @@
 #include <stdio.h>
 #include <conio.h>
 
+#include <thread>
+
 Application::Application()
 {
-    map.setup_route("Building A", "Building B", 4);
-    map.setup_route("Building A", "Building C", 2);
-    map.setup_route("Building B", "Building C", 1);
-    map.setup_route("Building B", "Building D", 5);
-    map.setup_route("Building C", "Building D", 8);
+    printf("Welcome to Tel-U Maps program\n");
+
+    printf(">> Intializing map routes...\n");
+    std::this_thread::sleep_for(std::chrono::milliseconds(800));
+
+    // shortest 2
+    // longest 24
+    map.setup_route("Gd. Cacuk 1", "Gd. Cacuk 2", 2);
+    map.setup_route("Gd. Cacuk 1", "TULT", 19);
+    map.setup_route("Gd. Cacuk 2", "TULT", 21);
+    map.setup_route("Gd. E", "TULT", 24);
+    map.setup_route("Gd. KU3", "TULT", 16);
 }
 
 void Application::print_menu(int *selected)
@@ -19,8 +28,6 @@ void Application::print_menu(int *selected)
     *selected = -1;
     while (*selected < 1 || *selected > 3)
     {
-        system("cls");
-
         printf("1. Search\n");
         printf("2. Show All\n");
         printf("3. Exit\n");
@@ -60,7 +67,10 @@ void Application::run()
         }
 
         if (option != EXIT)
+        {
             pause();
+            system("cls");
+        }
     }
 
     printf("Thank you!!");

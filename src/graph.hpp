@@ -11,8 +11,8 @@ struct Graph;
 
 struct Edge {
     int weight;
-    std::string target_node;
     Edge *next;
+    std::string target_node;
     
     Edge();
     Edge(int weight);
