@@ -43,6 +43,9 @@ struct Graph
     Node *insert_node(const std::string &name);
     Node *find_node(const std::string &name);
 
+    void setup_route(const std::string &from, const std::string &to, int weight);
+    void find_shortest_path(const std::string &start, const std::string &end);
+
     bool is_empty();
 
     void print();
