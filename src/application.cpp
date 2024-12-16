@@ -25,19 +25,21 @@ Application::Application()
 void Application::print_menu(int *selected)
 {
     *selected = -1;
-    while (*selected < 1 || *selected > 3)
+    while (*selected < 1 || *selected > 5)
     {
-        printf("1. Search\n");
-        printf("2. Show All\n");
-        printf("3. Exit\n");
+        printf("1. Tambah rute\n");
+        printf("2. Hapus rute\n");
+        printf("3. Search\n");
+        printf("4. Show All\n");
+        printf("5. Exit\n");
         printf("Please choose a menu: ");
         std::cin >> *selected;
         
         // clear newline
         std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
-        if (*selected < 1 || *selected > 3)
+        if (*selected < 1 || *selected > 5)
         {
-            printf("Please enter 1 to 3\n");
+            printf("Please enter 1 to 5\n");
         }
     }
 }
@@ -60,6 +62,27 @@ void Application::run()
         {
             case 1:
             {
+                std::string start, end;
+                int bobot;
+                
+                std::cout << "Masukkan rute awal: ";
+                std::getline(std::cin, start); // bisa pakai spasi
+
+                std::cout << "Masukkan rute akhir: ";
+                std::getline(std::cin, end);
+
+                std::cout << "Masukkan bobot: ";
+                std::cin >> bobot;
+                
+                map.setup_route(start, end, bobot);
+                break;
+            }
+            case 2:
+            {
+                break;
+            }
+            case 3: // search
+            {
                 print_routes();
                 std::string start, end;
                 printf("Enter start route: ");
@@ -71,7 +94,7 @@ void Application::run()
 
                 break;
             }
-            case 2:
+            case 4: // printing
             {
                 map.print();
                 break;
