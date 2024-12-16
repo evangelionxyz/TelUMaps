@@ -9,7 +9,9 @@ struct Application
     void run();
 
 private:
+    void print_routes();
     void print_menu(int *selected);
+    
     static void pause();
     telu::Graph map;
 };

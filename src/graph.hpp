@@ -23,6 +23,7 @@ struct Edge {
 struct Node {
     Node *next;
     Edge *first_edge;
+    
     std::string name;
 
     Node();

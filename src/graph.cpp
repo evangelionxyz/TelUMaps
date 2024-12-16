@@ -2,6 +2,9 @@
 
 #include "graph.hpp"
 #include <iostream>
+#include <vector>
+#include <unordered_map>
+#include <algorithm>
 
 namespace telu {
 
@@ -134,59 +137,155 @@ void Graph::find_shortest_path(const std::string &start, const std::string &end)
         Node *node;
         int distance;
         bool visited;
+        std::string previous_node;
     };
 
+    printf("Finding path from %s to %s\n", start.c_str(), end.c_str());
+    
     // initialize all of the nodes
     NodeDistance nodes[100];
     int node_count = 0;
+    bool start_found = false;
+    bool end_found = false;
 
+    // first pass: check if start and end nodes exist
+    Node *check_node = first;
+    while (check_node)
+    {
+        printf("Graph node found: %s\n", check_node->name.c_str());
+        if (check_node->name == start) start_found = true;
+        if (check_node->name == end) end_found = true;
+        check_node = check_node->next;
+    }
+
+    if (!start_found) 
+    {
+        printf("Start node %s not found in graph\n", start.c_str());
+        return;
+    }
+
+    if (!end_found) 
+    {
+        printf("End node %s not found in graph\n", end.c_str());
+        return;
+    }
+
+    // store the distance to each nodes
+    // make distance to 0 if it was a 'start' node
+    // otherwise make it the max value
     Node *current = first;
     while (current && node_count < 100)
     {
         nodes[node_count].node = current;
         nodes[node_count].distance = (current->name == start) ? 0 : INT_MAX;
         nodes[node_count].visited = false;
+        nodes[node_count].previous_node = "";
         current = current->next;
         node_count++;
     }
 
+    printf("Initialized %d nodes\n", node_count);
+
     while (true)
     {
+        // find the closest unvisited node
         NodeDistance *closest = nullptr;
         for (int i = 0; i < node_count; ++i)
         {
             if (!nodes[i].visited && (!closest || nodes[i].distance < closest->distance))
-            {
                 closest = &nodes[i];
-            }
         }
 
-        if (!closest || closest->distance == INT_MAX) break;
-
+        // if not found, break the loop
+        if (!closest || closest->distance == INT_MAX)
+        {
+            printf("No more nodes to process\n");
+            break;
+        }
+        // else, then mark the closest as visited
         closest->visited = true;
+
+        printf("---------------------------\n");
+        printf("Processing node: %s (distance: %d)\n", closest->node->name.c_str(), closest->distance);
+
+        // process edges
         Edge *edge = closest->node->first_edge;
+        int edge_count = 0;
         while (edge)
         {
+            printf("  Examining edge to %s (weight: %d)\n", edge->target_node.c_str(), edge->weight);
+            
             for (int i = 0; i < node_count; ++i)
             {
                 if (nodes[i].node->name == edge->target_node)
                 {
                     int new_distance = closest->distance + edge->weight;
+                    printf("    Potential new distance to %s: %d (current: %d)\n", 
+                           nodes[i].node->name.c_str(), new_distance, nodes[i].distance);
+                    
                     if (new_distance < nodes[i].distance) 
+                    {
                         nodes[i].distance = new_distance;
+                        nodes[i].previous_node = closest->node->name;
+                        printf("    Updated distance to %s\n", nodes[i].node->name.c_str());
+                    }
                     break;
                 }
             }
             edge = edge->next;
+            edge_count++;
         }
+        printf("Processed %d edges from node %s\n", edge_count, closest->node->name.c_str());
     }
+    printf("---------------------------\n");
 
+    // find the end node and print path
     for (int i = 0; i < node_count; ++i)
     {
         if (nodes[i].node->name == end)
         {
-            if (nodes[i].distance == INT_MAX) printf("No path from %s to %s\n", start.c_str(), end.c_str());
-            else printf("Shortest path from %s to %s is %d\n", start.c_str(), end.c_str(), nodes[i].distance);
+            if (nodes[i].distance == INT_MAX)
+                printf("No path from %s to %s\n", start.c_str(), end.c_str());
+            else
+            {
+                printf("Shortest path from %s to %s is %d\n", start.c_str(), end.c_str(), nodes[i].distance);
+                
+                // Reconstruct path
+                std::vector<std::string> path;
+                std::string current = end;
+                while (!current.empty())
+                {
+                    path.push_back(current);
+                    
+                    // Find previous node
+                    bool found = false;
+                    for (int j = 0; j < node_count; ++j)
+                    {
+                        if (nodes[j].node->name == current)
+                        {
+                            current = nodes[j].previous_node;
+                            found = true;
+                            break;
+                        }
+                    }
+                    
+                    if (!found) break;
+                    if (current == start) 
+                    {
+                        path.push_back(current);
+                        break;
+                    }
+                }
+                
+                // Print path
+                printf("Path: ");
+                for (int j = path.size() - 1; j >= 0; --j)
+                {
+                    printf("%s", path[j].c_str());
+                    if (j > 0) printf(" -> ");
+                }
+                printf("\n");
+            }
             return;
         }
     }
