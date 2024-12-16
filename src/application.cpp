@@ -19,7 +19,7 @@ Application::Application()
     map.setup_route("Cacuk 2", "TULT", 21);
     map.setup_route("E", "TULT", 24);
     map.setup_route("KU3", "TULT", 16); 
-    map.setup_route("Bangkit", "TULT", 17); 
+    map.setup_route("bangkit", "TULT", 17); 
 }
 
 void Application::print_menu(int *selected)
