@@ -60,9 +60,7 @@ void Application::run()
             case 1:
             {
                 print_routes();
-
                 std::string start, end;
-
                 printf("Enter start route: ");
                 std::getline(std::cin, start);
                 printf("Enter end route: ");
