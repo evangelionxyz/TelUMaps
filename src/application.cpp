@@ -14,6 +14,13 @@ Application::Application()
     printf(">> Intializing map routes...\n");
     //std::this_thread::sleep_for(std::chrono::milliseconds(800));
 
+    // shortest 2, longest 24
+    map.setup_route("Cacuk 1", "Cacuk 2", 2);
+    map.setup_route("Cacuk 1", "TULT", 19);
+    map.setup_route("Cacuk 2", "TULT", 21);
+    map.setup_route("E", "TULT", 24);
+    map.setup_route("KU3", "TULT", 16); 
+    map.setup_route("bangkit", "TULT", 17); 
     map.setup_route("CACUK 1", "CACUK 2", 2);
 }
 
@@ -78,7 +85,7 @@ void Application::run()
                 map.find_shortest_path(start, end);
                 break;
             }
-            case 2:
+            case 4: // printing
             {
                 map.print();
                 break;
