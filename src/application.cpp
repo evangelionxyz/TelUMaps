@@ -85,7 +85,7 @@ void Application::run()
                 map.find_shortest_path(start, end);
                 break;
             }
-            case 4: // printing
+            case 2: // printing
             {
                 map.print();
                 break;
