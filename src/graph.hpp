@@ -30,6 +30,7 @@ struct Node {
     Node(const std::string &name);
 
     Edge *add_edge(Graph *graph, const std::string &to, int weight);
+    void remove_edge(const std::string &to);
     void print();
 };
 
@@ -42,9 +43,13 @@ struct Graph
 
     Node *insert_node(Node *new_node);
     Node *insert_node(const std::string &name);
+    bool remove_node(const std::string &name);
     Node *find_node(const std::string &name);
+    Edge *find_edge(Node *node, const std::string &to);
+    int find_route_weight(const std::string &from, const std::string &to);
 
     void setup_route(const std::string &from, const std::string &to, int weight);
+    void remove_route(const std::string &from, const std::string &to);
     void find_shortest_path(const std::string &start, const std::string &end);
 
     bool is_empty();

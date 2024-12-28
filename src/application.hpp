@@ -11,6 +11,7 @@ struct Application
 private:
     void print_routes();
     void print_menu(int *selected);
+    void to_upper(std::string &str);
     
     static void pause();
     telu::Graph map;
