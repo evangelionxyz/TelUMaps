@@ -169,10 +169,13 @@ void Application::run()
                     to_upper(end);
                     std::cin >> weight;
 
-                    if (weight < 2 && weight > 24)
+                    if (weight < 2 || weight > 24)
                     {
+                        std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                         printf("Please try again\n");
                         printf("Enter weight with range between 2 - 24\n");
+                        pause();
+                        system("cls");
                     }
                     else
                     {
@@ -208,7 +211,9 @@ void Application::run()
         }
     }
 
-    printf("Thank you!!");
+    system("cls");
+    printf("Thank you!!\n");
+    pause();
 }
 
 void Application::print_routes()

@@ -152,7 +152,6 @@ bool Graph::remove_node(const std::string &name)
     if (!first)
         return false;
 
-
     bool removed = false;
     if (first->name == name)
     {
