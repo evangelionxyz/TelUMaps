@@ -2,23 +2,37 @@
 
 #include "graph.hpp"
 #include <iostream>
-#include <vector>
+#include <queue>
 #include <unordered_map>
-#include <algorithm>
+
+const int MAX_ITERATE = 50;
 
 namespace telu {
 
-Edge::Edge() : weight(0), next(nullptr) {}
-Edge::Edge(int weight) : weight(weight), next(nullptr) {}
+Edge::Edge()
+    : weight(0), next(nullptr)
+{
+}
+
+Edge::Edge(int weight)
+    : weight(weight), next(nullptr)
+{
+}
 
 void Edge::print()
 {
-    printf("-> %s - weights %d\n", target_node.c_str(), weight);
+    printf("-> %s - %d\n", target_node.c_str(), weight);
 }
 
-Node::Node() : next(nullptr), first_edge(nullptr) {}
+Node::Node()
+    : next(nullptr), first_edge(nullptr)
+{
+}
 
-Node::Node(const std::string &name) : name(name), next(nullptr), first_edge(nullptr) {}
+Node::Node(const std::string &name)
+    : name(name), next(nullptr), first_edge(nullptr)
+{
+}
 
 Edge *Node::add_edge(Graph *graph, const std::string &to, int weight)
 {
@@ -55,14 +69,9 @@ void Node::remove_edge(const std::string &to)
         {
             Edge *delete_edge = edge;
             if (edge->next && prev)
-            {
                 prev->next = edge->next;
-            }
-
             if (delete_edge == first_edge)
-            {
                 first_edge = nullptr;
-            }
             delete delete_edge;
             break;
         }
@@ -77,9 +86,10 @@ void Node::print()
 }
 
 
-///
+/// -----------------
 /// ----------- GRAPH
-/// 
+/// -----------------
+
 #pragma region GRAPH
 
 Graph::Graph()
@@ -89,16 +99,20 @@ Graph::Graph()
 
 Graph::~Graph()
 {
-    for (Node *node = first; node != nullptr; node = node->next)
+    Node *node = first;
+    while (node)
     {
-        Node *to_delete = node;
-        Edge *edge = to_delete->first_edge;
-        for (Edge *edge = node->first_edge; edge != nullptr; edge = edge->next)
+        Edge *edge = node->first_edge;
+        while (edge)
         {
-            Edge *edge_to_delete = edge;
-            delete edge_to_delete;
+            Edge *delete_edge = edge;
+            edge = edge->next;
+            delete edge;
         }
-        delete to_delete;
+
+        Node *delete_node = node;
+        node = node->next;
+        delete delete_node;
     }
 }
 
@@ -126,7 +140,6 @@ Node *Graph::insert_node(const std::string &name)
     Node *new_node = new Node(name);
     return insert_node(new_node);
 }
-
 
 bool Graph::remove_node(const std::string &name)
 {
@@ -187,12 +200,20 @@ void Graph::setup_route(const std::string &from, const std::string &to, int weig
 {
     // find or create node
     Node *from_node = find_node(from);
-    if (!from_node) 
-        from_node = insert_node(from);
-
     Node *to_node = find_node(to);
+    if (!from_node)
+    {
+        printf("Failed to setup route: Node %s not found\n", from.c_str());
+        printf("Please add the node first\n");
+        return;
+    }
+
     if (!to_node)
-        to_node = insert_node(to);
+    {
+        printf("Failed to setup route: Node %s not found\n", to.c_str());
+        printf("Please add the node first\n");
+        return;
+    }
 
     Edge *existing_edge = find_edge(from_node, to);
     if (existing_edge)
@@ -210,173 +231,78 @@ void Graph::setup_route(const std::string &from, const std::string &to, int weig
 
 void Graph::find_shortest_path(const std::string &start, const std::string &end)
 {
-    if (this->is_empty())
+    std::unordered_map<std::string, NodeDistance> distances;
+
+    for (Node *node = first; node != nullptr; node = node->next)
     {
-        printf("Graph is empty.\n");
-        return;
+        distances[node->name] = { node, std::numeric_limits<int>::max(), false, "" };
     }
 
-    struct NodeDistance
+    auto compare = [](const std::pair<int, std::string> &a, const std::pair<int, std::string> &b)
     {
-        Node *node;
-        int distance;
-        bool visited;
-        std::string previous_node;
+        return a.first > b.first;
     };
 
-    printf("Finding path from %s to %s\n", start.c_str(), end.c_str());
+    std::priority_queue<std::pair<int, std::string>, std::vector<std::pair<int, std::string>>, decltype(compare)> pq(compare);
 
-    // initialize all of the nodes
-    NodeDistance nodes[100];
-    int node_count = 0;
-    bool start_found = false;
-    bool end_found = false;
-
-    // first pass: check if start and end nodes exist
-    Node *check_node = first;
-    while (check_node)
+    if (distances.find(start) == distances.end())
     {
-        printf("Graph node found: %s\n", check_node->name.c_str());
-        if (check_node->name == start) start_found = true;
-        if (check_node->name == end) end_found = true;
-        check_node = check_node->next;
-    }
-
-    if (!start_found)
-    {
-        printf("Start node %s not found in graph\n", start.c_str());
+        printf("Start node not found: %s\n", start.c_str());
         return;
     }
 
-    if (!end_found)
+    distances[start].distance = 0;
+    pq.push({ 0, start });
+
+    while (!pq.empty())
     {
-        printf("End node %s not found in graph\n", end.c_str());
+        auto [current_distance, current_name] = pq.top();
+        pq.pop();
+
+        NodeDistance &current = distances[current_name];
+        if (current.visited)
+            continue;
+        current.visited = true;
+
+        for (Edge *edge = current.node->first_edge; edge != nullptr; edge = edge->next)
+        {
+            NodeDistance &neighbor = distances[edge->target_node];
+
+            int new_distance = current_distance + edge->weight;
+            if (new_distance < neighbor.distance)
+            {
+                neighbor.distance = new_distance;
+                neighbor.previous_node = current_name;
+                pq.push({ new_distance, edge->target_node });
+            }
+        }   
+    }
+
+    if (distances[end].distance == std::numeric_limits<int>::max())
+    {
+        printf("No path from %s to %s\n", start.c_str(), end.c_str());
         return;
     }
 
-    // store the distance to each nodes
-    // make distance to 0 if it was a 'start' node
-    // otherwise make it the max value
-    Node *current = first;
-    while (current && node_count < 100)
+    std::vector<std::string> path;
+    std::string current = end;
+    while (!current.empty())
     {
-        nodes[node_count].node = current;
-        nodes[node_count].distance = (current->name == start) ? 0 : INT_MAX;
-        nodes[node_count].visited = false;
-        nodes[node_count].previous_node = "";
-        current = current->next;
-        node_count++;
+        path.push_back(current);
+        current = distances[current].previous_node;
     }
 
-    printf("Initialized %d nodes\n", node_count);
+    std::reverse(path.begin(), path.end());
 
-    while (true)
+    printf("Shortest path: ");
+    for (size_t i = 0; i < path.size(); ++i)
     {
-        // find the closest unvisited node
-        NodeDistance *closest = nullptr;
-        for (int i = 0; i < node_count; ++i)
-        {
-            if (!nodes[i].visited && (!closest || nodes[i].distance < closest->distance))
-                closest = &nodes[i];
-        }
-
-        // if not found, break the loop
-        if (!closest || closest->distance == INT_MAX)
-        {
-            printf("No more nodes to process\n");
-            break;
-        }
-        // else, then mark the closest as visited
-        closest->visited = true;
-
-        printf("---------------------------\n");
-        printf("Processing node: %s (distance: %d)\n", closest->node->name.c_str(), closest->distance);
-
-        // process edges
-        Edge *edge = closest->node->first_edge;
-        int edge_count = 0;
-        while (edge)
-        {
-            printf("  Examining edge to %s (weight: %d)\n", edge->target_node.c_str(), edge->weight);
-
-            for (int i = 0; i < node_count; ++i)
-            {
-                if (nodes[i].node->name == edge->target_node)
-                {
-                    int new_distance = closest->distance + edge->weight;
-                    printf("    Potential new distance to %s: %d (current: %d)\n",
-                        nodes[i].node->name.c_str(), new_distance, nodes[i].distance);
-
-                    if (new_distance < nodes[i].distance)
-                    {
-                        nodes[i].distance = new_distance;
-                        nodes[i].previous_node = closest->node->name;
-                        printf("    Updated distance to %s\n", nodes[i].node->name.c_str());
-                    }
-                    break;
-                }
-            }
-            edge = edge->next;
-            edge_count++;
-        }
-        printf("Processed %d edges from node %s\n", edge_count, closest->node->name.c_str());
+        if (i > 0)
+            printf(" -> ");
+        printf("%s", path[i].c_str());
     }
-    printf("---------------------------\n");
-
-    // find the end node and print path
-    for (int i = 0; i < node_count; ++i)
-    {
-        if (nodes[i].node->name == end)
-        {
-            if (nodes[i].distance == INT_MAX)
-                printf("No path from %s to %s\n", start.c_str(), end.c_str());
-            else
-            {
-                printf("Shortest path from %s to %s is %d\n", start.c_str(), end.c_str(), nodes[i].distance);
-
-                // Reconstruct path
-                std::vector<std::string> path;
-                std::string current = end;
-                while (!current.empty())
-                {
-                    path.push_back(current);
-
-                    // Find previous node
-                    bool found = false;
-                    for (int j = 0; j < node_count; ++j)
-                    {
-                        if (nodes[j].node->name == current)
-                        {
-                            current = nodes[j].previous_node;
-                            found = true;
-                            break;
-                        }
-                    }
-
-                    if (!found) break;
-                    if (current == start)
-                    {
-                        path.push_back(current);
-                        break;
-                    }
-                }
-
-                // Print path
-                printf("Path: ");
-                for (int j = path.size() - 1; j >= 0; --j)
-                {
-                    printf("%s", path[j].c_str());
-                    if (j > 0) printf(" -> ");
-                }
-                printf("\n");
-            }
-            return;
-        }
-    }
-
-    printf("Node %s not found in graph\n", end.c_str());
+    printf(": %d\n", distances[end].distance);
 }
-
 
 void Graph::remove_route(const std::string &from, const std::string &to)
 {

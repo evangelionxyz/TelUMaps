@@ -12,16 +12,35 @@ const int EXIT = 7;
 Application::Application()
 {
     printf(">> Intializing map routes...\n");
-    //std::this_thread::sleep_for(std::chrono::milliseconds(800));
+    std::this_thread::sleep_for(std::chrono::milliseconds(800));
 
     // shortest 2, longest 24
-    map.setup_route("Cacuk 1", "Cacuk 2", 2);
-    map.setup_route("Cacuk 1", "TULT", 19);
-    map.setup_route("Cacuk 2", "TULT", 21);
-    map.setup_route("E", "TULT", 24);
-    map.setup_route("KU3", "TULT", 16); 
-    map.setup_route("bangkit", "TULT", 17); 
+    map.insert_node("CACUK 1");
+    map.insert_node("CACUK 2");
+    map.insert_node("TULT");
+    map.insert_node("E");
+    map.insert_node("GKU");
+    map.insert_node("BANGKIT");
+
     map.setup_route("CACUK 1", "CACUK 2", 2);
+    map.setup_route("CACUK 1", "GKU", 15);
+    map.setup_route("CACUK 1", "TULT", 21);
+    map.setup_route("CACUK 1", "BANGKIT", 3);
+
+    map.setup_route("CACUK 2", "BANGKIT", 5);
+    map.setup_route("CACUK 2", "E", 10);
+    map.setup_route("CACUK 2", "GKU", 14);
+    map.setup_route("CACUK 2", "TULT", 19);
+
+    map.setup_route("E", "BANGKIT", 13);
+    map.setup_route("E", "CACUK 1", 8);
+    map.setup_route("E", "GKU", 19);
+    map.setup_route("E", "TULT", 24);
+
+    map.setup_route("BANGKIT", "GKU", 6);
+    map.setup_route("BANGKIT", "TULT", 22);
+
+    map.setup_route("GKU", "TULT", 16);
 }
 
 void Application::print_menu(int *selected)
@@ -30,11 +49,11 @@ void Application::print_menu(int *selected)
     while (*selected < 1 || *selected > EXIT)
     {
         printf("1. Search\n");
-        printf("2. Show All\n");
-        printf("3. Add new node\n");
+        printf("2. Print graph\n");
+        printf("3. Create new node\n");
         printf("4. Remove a node\n");
-        printf("5. Add new route\n");
-        printf("6. Remove route\n");
+        printf("5. Create new route\n");
+        printf("6. Remove a route\n");
         printf("7. Exit\n");
         printf("Please choose a menu: ");
         std::cin >> *selected;
@@ -69,7 +88,6 @@ void Application::run()
     while (option != EXIT)
     {
         printf("Welcome to Tel-U Maps program\n");
-        map.print();
         print_menu(&option);
         switch (option)
         {
@@ -82,6 +100,8 @@ void Application::run()
                 std::getline(std::cin, start);
                 printf("Enter end route: ");
                 std::getline(std::cin, end);
+                to_upper(start);
+                to_upper(end);
                 map.find_shortest_path(start, end);
                 break;
             }
@@ -92,7 +112,7 @@ void Application::run()
             }
             case 3:
             {
-                printf("--- Add new node ---\n");
+                printf("--- Add New Node ---\n");
                 std::string node_name;
                 printf("Enter node name: ");
                 std::getline(std::cin, node_name);
@@ -112,7 +132,7 @@ void Application::run()
             }
             case 4: 
             {
-                printf("--- Remove a node ---\n");
+                printf("--- Remove A Node ---\n");
                 std::string node_name;
                 printf("Enter node name: ");
                 std::getline(std::cin, node_name);

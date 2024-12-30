@@ -1,6 +1,9 @@
 // Copyright (c) 2024 Evangelion Manuhutu | Nur Ilmi Mufidah
 
 #pragma once
+#include <vector>
+#include <set>
+#include <unordered_set>
 #include <string>
 
 namespace telu {
@@ -23,7 +26,6 @@ struct Edge {
 struct Node {
     Node *next;
     Edge *first_edge;
-    
     std::string name;
 
     Node();
@@ -32,6 +34,21 @@ struct Node {
     Edge *add_edge(Graph *graph, const std::string &to, int weight);
     void remove_edge(const std::string &to);
     void print();
+};
+
+struct NodeDistance
+{
+    Node *node;
+    int distance;
+    bool visited;
+    std::string previous_node;
+};
+
+struct Route
+{
+    std::string name;
+    std::string target;
+    int weight;
 };
 
 struct Graph
@@ -47,13 +64,10 @@ struct Graph
     Node *find_node(const std::string &name);
     Edge *find_edge(Node *node, const std::string &to);
     int find_route_weight(const std::string &from, const std::string &to);
-
     void setup_route(const std::string &from, const std::string &to, int weight);
     void remove_route(const std::string &from, const std::string &to);
     void find_shortest_path(const std::string &start, const std::string &end);
-
     bool is_empty();
-
     void print();
 };
 
