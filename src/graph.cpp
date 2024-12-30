@@ -45,38 +45,44 @@ Edge *Node::add_edge(Graph *graph, const std::string &to, int weight)
 
     Edge *new_edge = new Edge(weight);
     new_edge->target_node = target_node->name;
-
     if (!first_edge)
     {
         first_edge = new_edge;
         return new_edge;
     }
 
-    Edge *current = first_edge;
-    while (current && current->next)
-        current = current->next;
-    current->next = new_edge;
+    Edge *edge = first_edge;
+    while (edge && edge->next)
+        edge = edge->next;
+
+    edge->next = new_edge;
     return new_edge;
 }
 
 void Node::remove_edge(const std::string &to)
 {
-    Edge *edge = first_edge;
-    Edge *prev = nullptr;
-    while (edge)
+    if (!first_edge)
+        return;
+
+    if (first_edge->target_node == to)
     {
-        if (edge->target_node == to)
+        Edge *delete_target = first_edge;
+        first_edge = first_edge->next;
+        delete delete_target;
+        return;
+    }
+
+    Edge *edge = first_edge;
+    while (edge->next)
+    {
+        if (edge->next->target_node == to)
         {
-            Edge *delete_edge = edge;
-            if (edge->next && prev)
-                prev->next = edge->next;
-            if (delete_edge == first_edge)
-                first_edge = nullptr;
+            Edge *delete_edge = edge->next;
+            edge->next = edge->next->next;
             delete delete_edge;
-            break;
+            return;
         }
         edge = edge->next;
-        prev = edge;
     }
 }
 
@@ -84,7 +90,6 @@ void Node::print()
 {
     std::cout << "Node: " << name << '\n';
 }
-
 
 /// -----------------
 /// ----------- GRAPH
@@ -97,7 +102,7 @@ Graph::Graph()
 {
 }
 
-Graph::~Graph()
+Graph::~Graph() // destructor
 {
     Node *node = first;
     while (node)
@@ -107,11 +112,13 @@ Graph::~Graph()
         {
             Edge *delete_edge = edge;
             edge = edge->next;
-            delete edge;
+
+            delete delete_edge;
         }
 
         Node *delete_node = node;
         node = node->next;
+
         delete delete_node;
     }
 }
@@ -125,12 +132,11 @@ Node *Graph::insert_node(Node *new_node)
         return new_node;
     }
 
-    Node *current = first;
-    while (current && current->next)
-    {
-        current = current->next;
-    }
-    current->next = new_node;
+    Node *node = first;
+    while (node && node->next)
+        node = node->next;
+
+    node->next = new_node;
     return new_node;
 }
 
@@ -146,32 +152,48 @@ bool Graph::remove_node(const std::string &name)
     if (!first)
         return false;
 
-    Node *current = first;
-    Node *prev = nullptr;
 
-    while (current)
+    bool removed = false;
+    if (first->name == name)
     {
-        if (current->name == name)
+        Node *delete_node = first;
+        first = first->next;
+        delete delete_node;
+        removed = true;
+    }
+
+    Node *current = first;
+    while (current->next && !removed)
+    {
+        if (current->next->name == name)
         {
-            Node *delete_node = current;
-            if (current->next && prev)
-                prev->next = current->next;
+            Node *delete_node = current->next;
+            current->next = current->next->next;
             delete delete_node;
-            return true;
+            removed = true;
+            break;
         }
         current = current->next;
-        prev = current;
     }
-    return false;
+
+    current = first;
+    // remove connected node
+    while (current && removed)
+    {
+        current->remove_edge(name);
+        current = current->next;
+    }
+
+    return removed;
 }
 
 Node *Graph::find_node(const std::string &name)
 {
-    Node *current = first;
-    while (current)
+    Node *node = first;
+    while (node)
     {
-        if (current->name == name)  return current;
-        current = current->next;
+        if (node->name == name)  return node;
+        node = node->next;
     }
     return nullptr;
 }
@@ -183,17 +205,6 @@ Edge *Graph::find_edge(Node *node, const std::string &to)
         if (edge->target_node == to) return edge;
     }
     return nullptr;
-}
-
-int Graph::find_route_weight(const std::string &from, const std::string &to)
-{
-    Node *from_node = find_node(from);
-    if (!from_node) return INT_MAX;
-    for (Edge *edge = from_node->first_edge; edge != nullptr; edge = edge->next)
-    {
-        if (edge->target_node == to) return edge->weight;
-    }
-    return INT_MAX;
 }
 
 void Graph::setup_route(const std::string &from, const std::string &to, int weight)
@@ -229,6 +240,7 @@ void Graph::setup_route(const std::string &from, const std::string &to, int weig
     to_node->add_edge(this, from, weight);
 }
 
+// DIJKSTRA ALGORITHM
 void Graph::find_shortest_path(const std::string &start, const std::string &end)
 {
     std::unordered_map<std::string, NodeDistance> distances;
@@ -238,6 +250,7 @@ void Graph::find_shortest_path(const std::string &start, const std::string &end)
         distances[node->name] = { node, std::numeric_limits<int>::max(), false, "" };
     }
 
+    // comparison function from longest to shortest distance
     auto compare = [](const std::pair<int, std::string> &a, const std::pair<int, std::string> &b)
     {
         return a.first > b.first;
@@ -251,9 +264,11 @@ void Graph::find_shortest_path(const std::string &start, const std::string &end)
         return;
     }
 
+    // push distances to queue
     distances[start].distance = 0;
     pq.push({ 0, start });
 
+    // processing total distance
     while (!pq.empty())
     {
         auto [current_distance, current_name] = pq.top();
@@ -262,8 +277,8 @@ void Graph::find_shortest_path(const std::string &start, const std::string &end)
         NodeDistance &current = distances[current_name];
         if (current.visited)
             continue;
-        current.visited = true;
 
+        current.visited = true;
         for (Edge *edge = current.node->first_edge; edge != nullptr; edge = edge->next)
         {
             NodeDistance &neighbor = distances[edge->target_node];
@@ -286,6 +301,8 @@ void Graph::find_shortest_path(const std::string &start, const std::string &end)
 
     std::vector<std::string> path;
     std::string current = end;
+
+    // inserting previous path for printing
     while (!current.empty())
     {
         path.push_back(current);
@@ -308,6 +325,7 @@ void Graph::remove_route(const std::string &from, const std::string &to)
 {
     Node *from_node = find_node(from);
     Node *to_node = find_node(to);
+
     if (from_node && to_node)
     {
         from_node->remove_edge(to);
@@ -325,7 +343,6 @@ void Graph::print()
     for (Node *node = first; node != nullptr; node = node->next)
     {
         node->print();
-        Edge *edge = node->first_edge;
         for (Edge *edge = node->first_edge; edge != nullptr; edge = edge->next)
         {
             printf("   ");

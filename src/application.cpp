@@ -48,7 +48,7 @@ void Application::print_menu(int *selected)
     *selected = -1;
     while (*selected < 1 || *selected > EXIT)
     {
-        printf("1. Search\n");
+        printf("1. Search Shortest Route\n");
         printf("2. Print graph\n");
         printf("3. Create new node\n");
         printf("4. Remove a node\n");
@@ -66,7 +66,7 @@ void Application::print_menu(int *selected)
         }
     }
 }
-
+ 
 void Application::to_upper(std::string &str)
 {
     for (int i = 0; i < str.size(); ++i)
@@ -78,7 +78,7 @@ void Application::to_upper(std::string &str)
 void Application::pause()
 {
     printf("Press any key to continue...");
-    char input = _getch();
+    char input = _getch(); // get character
 }
 
 void Application::run()
@@ -89,11 +89,12 @@ void Application::run()
     {
         printf("Welcome to Tel-U Maps program\n");
         print_menu(&option);
+
         switch (option)
         {
             case 1:
             {
-                printf("--- Search Route ---\n");
+                printf("--- Search Shortest Route ---\n");
                 print_routes();
                 std::string start, end;
                 printf("Enter start route: ");
@@ -112,6 +113,7 @@ void Application::run()
             }
             case 3:
             {
+                // create node if not found
                 printf("--- Add New Node ---\n");
                 std::string node_name;
                 printf("Enter node name: ");
@@ -139,9 +141,13 @@ void Application::run()
                 to_upper(node_name);
 
                 if (map.remove_node(node_name))
+                {
                     printf("Node %s has been removed successfully\n", node_name.c_str());
+                }
                 else
+                {
                     printf("Failed to remove node %s\n", node_name.c_str());
+                }
 
                 break;
             }

@@ -5,7 +5,6 @@
 struct Application
 {
     Application();
-
     void run();
 
 private:
